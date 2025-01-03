@@ -55,6 +55,7 @@ public class BikeLog {
             for (int i=0;i<bicicletas.length;i++)
                 System.out.println(bicicletas[i].toString());
             */
+            bikeMenu();
             break;  
             case 5:
                 System.out.println("goodbye");
@@ -117,12 +118,53 @@ public class BikeLog {
         System.out.println("\nBIKES. ENTER AN OPTION");
         System.out.println("1.Add new Bike\n2.Edit Bike\n3.Search\n4.Main menu\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
+        Bike newBike = new Bike();
         switch (option) {
             case 1:
+                System.out.print("Enter new Bike name: ");
+                newBike.setName(scanner.nextLine().toUpperCase());
+                System.out.print("Enter new Bike brand: ");
+                newBike.setBrand(scanner.nextLine().toUpperCase());
+                System.out.print("Enter new Bike model: ");
+                newBike.setModel(scanner.nextLine().toUpperCase());
+                System.out.print("Enter new Bike type (ROAD/MTB/GRAVEL): ");
+                newBike.setType(scanner.nextLine().toUpperCase());
+                newBike.setOdo(0.0);
+                newBike.setRideTime(0.0);
+                double odo = 0.0;
+                System.out.print("Enter new Bike starting odometer reading <0>: ");
+                String field = scanner.nextLine();
+                if (field != "")
+                    odo = Double.parseDouble(field);
+                double ride_time = 0.0;
+                System.out.print("Enter new Bike starting ride time reading <0>: ");
+                field = scanner.nextLine();
+                if (field != "")
+                    ride_time= Double.parseDouble(field);
+                
+                insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time));
                 break;
             case 2:
+                /*
+                System.out.print("Enter Service ID or <search>: ");
+                String field = scanner.nextLine();
+                int id_service = 0;
+                if (field == "")
+                    id_service = searchService();
+                else
+                    id_service = Integer.parseInt(field);
+                Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
+                System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
+                field = scanner.nextLine();
+                servicio[0].setName(field);
+                if (field != "")
+                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service));
+                serviceMenu();
+                */
                 break;
             case 3:
+                searchService();
+                serviceMenu();
                 break;
             case 4:
                 mainMenu();
