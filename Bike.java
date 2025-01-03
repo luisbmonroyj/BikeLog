@@ -1,4 +1,8 @@
+// taken from /luisbmonroyj/Documents/01 Programacion/projects/backend 
+
 public class Bike {
+    //@Id
+    //private int _id;
     private int id;
     private String name;
     private String brand;
@@ -35,13 +39,14 @@ public class Bike {
     public void setModel(String modelo) {this.model = modelo;}
     public void setType(String tipo) {this.type = tipo;}
     public void setOdo(double odometro) {this.odo = odometro;}
-    public void setRideTIme (double horometro) {this.rideTime = horometro;}
+    public void setRideTime (double horometro) {this.rideTime = horometro;}
 
-    public String getColumnList(){return "name,brand,model,bike_type,odo,ride_time,starting_odo,starting_time";}
-    
+    public String getColumnList(){
+        return "name,brand,model,type,odo,ride_time,starting_odo,starting_time";
+    }
     public String toInsertValues(double startingOdo, double startingTime){
-        return name+","+brand+","+model+","+type+","+Double.toString(odo)+","+Double.toString(rideTime)+
-        Double.toString(startingOdo)+","+Double.toString(startingTime);}
+        return "'"+name+"','"+brand+"','"+model+"','"+type+"',"+Double.toString(odo)+","+Double.toString(rideTime)+","+Double.toString(startingOdo)+","+Double.toString(startingTime);    
+    }
     public String toUpdateValues(double startingOdo, double startingTime){
         return "name = '"+name+"', brand = '"+brand+"', model = '"+model+"', type = '"+type+"'";    
     }
