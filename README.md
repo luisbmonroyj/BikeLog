@@ -82,22 +82,38 @@ SELECT * FROM "maintenance" WHERE "id_bike" = (SELECT "id" FROM "bikes" WHERE "n
 SELECT * FROM "maintenance" WHERE "id_bike" = 1 AND "id_service" =
     (SELECT "id" FROM "service" WHERE "name" = "rueda trasera");
 
+* Reading json from duration
+SELECT JSON_EXTRACT(duration, '$.km') as odo FROM maintenance WHERE id_bike = 1 AND date = '2020-02-07';
+SELECT JSON_EXTRACT(duration, '$.hours') as hours FROM maintenance WHERE id_bike = 1  AND date = '2020-02-07';
+
+SELECT * FROM maintenance WHERE data LIKE '%"km":1500%'; --or something like that...
+
 ### Creating maintenance
 INSERT INTO "maintenance" ("date","id_bike","odo","id_service","brand","reference","price","description","duration") 
-VALUES  ('2019-10-01',1,0,1,'TREK','1500',1000,'Bicicleta de segunda mano Grupo Sora 9',"{'km': 0, 'hours': 0}");
+VALUES  ('2019-10-01',1,0,1,'TREK','1500',1000,'Bicicleta de segunda mano Grupo Sora 9','{"km": 0, "hours": 0}');
 
 * testing unexistent id_service
 INSERT INTO "maintenance" ("date","id_bike","odo","id_service","brand","reference","price","description",
     "duration") VALUES ("2020-09-30",1,2644,(SELECT "id" FROM "service" WHERE "name" = 'rear tire'),"Continental","Ultra sport3 700x25",73,'example',"{'km': 0, 'hours': 0}");
 
 ### updating a maintenance
+* standard columns
 UPDATE "maintenance" SET "reference" = "Ultra sport3 700x25" WHERE "reference" = "Utra sport3 700x25";
+
+* json column "duration"
+UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.km', 720) WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07';
+UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.hours', 100) WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07';
 
 ### Deleting a maintenance
 DELETE FROM "maintenance" WHERE "id_bike" = 3;
 
---strftime(format, time-value
+--strftime(format, time-value)
 --2020-02-07,STAR,720,2,Shimano,"unknown",0,NONE,"{'km': 0, 'hours': 0}"
 
+UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.hours', NEW."odo" - (
+    SELECT MAX(JSON_EXTRACT(duration, '$.hours')) as hours FROM maintenance WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07'
+    ) 
+    ) 
+    WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07';
 
 

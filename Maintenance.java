@@ -57,7 +57,7 @@ public class Maintenance {
     }
     //works for insert
     public String toString(){
-        return date.toString()+","+Integer.toString(id_bike)+","+Double.toString(odo)+","+Integer.toString( id_service)+","+
-        brand+","+reference+","+Double.toString(price)+","+description+","+duration;
+        return "'"+date.toString()+"',"+Integer.toString(id_bike)+","+Double.toString(odo)+","+Integer.toString(id_service)+",'"+
+        brand+"','"+reference+"',"+Double.toString(price)+",'"+description+"','"+duration+"'";
     }
 }
