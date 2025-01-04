@@ -50,7 +50,8 @@ public class BikeLog {
                 serviceMenu();
                 break;
             case 4:
-            /*Bike[] bicicletas = bikes();
+            /*
+            Bike[] bicicletas = bikes();
             System.out.println("Bicicletas");
             for (int i=0;i<bicicletas.length;i++)
                 System.out.println(bicicletas[i].toString());
@@ -72,7 +73,7 @@ public class BikeLog {
                 System.out.print("Enter new Service name: ");
                 name = scanner.nextLine();
                 Service newService = new Service(0,name);
-                insertValues("service",newService.getColumnList(),newService.toInsertValues());
+                insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
                 break;
             case 2:
                 System.out.print("Enter Service ID or <search>: ");
@@ -87,7 +88,7 @@ public class BikeLog {
                 field = scanner.nextLine();
                 servicio[0].setName(field);
                 if (field != "")
-                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service));
+                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service),false);
                 serviceMenu();
                 break;
             case 3:
@@ -112,6 +113,17 @@ public class BikeLog {
             System.out.println(servicios[i].toString());
         System.out.print("Enter Servce ID: ");
         return Integer.parseInt(scanner.nextLine());
+    }
+    
+    public static void searchBike (String column){
+        System.out.print("Enter keyword for Bike "+column+": ");
+        String field = scanner.nextLine();
+        Bike[] servicios = bikes("WHERE "+column+" LIKE '%"+field+"%'");//can be various
+        System.out.println("Bikes matching keyword: \nID,name,brand,model,odo,ride_time");
+        for (int i=0;i<servicios.length;i++)
+            System.out.println(servicios[i].toString());
+        //System.out.print("Enter Servce ID: ");
+        //return Integer.parseInt(scanner.nextLine());
     }
     
     public static void bikeMenu(){
@@ -141,30 +153,46 @@ public class BikeLog {
                 field = scanner.nextLine();
                 if (field != "")
                     ride_time= Double.parseDouble(field);
-                
-                insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time));
+                //odo and ride_time goes to databases' (starting_odo and starting_time) columns instead of odo and ride_time
+                //because these last ones stores kilometers and hours registered by the user
+                insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time),false);
                 break;
             case 2:
-                /*
-                System.out.print("Enter Service ID or <search>: ");
-                String field = scanner.nextLine();
-                int id_service = 0;
-                if (field == "")
-                    id_service = searchService();
-                else
-                    id_service = Integer.parseInt(field);
-                Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
-                System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
-                field = scanner.nextLine();
-                servicio[0].setName(field);
+                Bike[] bicicletas = bikes("");
+                System.out.println("\n List of bikes: \nname,brand,model,type,odo,ride_time");
+                //LIST OF BIKES
+                for (int i=0;i<bicicletas.length;i++)
+                    System.out.println(bicicletas[i].toString());
+                //SELECT BIKE BY ID
+                System.out.print("Enter Bike ID: ");
+                int id_bike = Integer.parseInt(scanner.nextLine());
+                bicicletas = bikes("WHERE id = "+Integer.toString(id_bike));//must be only one
+                
+                System.out.print("Enter bike's new name or <"+bicicletas[0].getName()+">: ");
+                field = scanner.nextLine().toUpperCase();
                 if (field != "")
-                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service));
-                serviceMenu();
-                */
+                    bicicletas[0].setName(field);
+                System.out.print("Enter bike's new Brand or <"+bicicletas[0].getBrand()+">: ");
+                field = scanner.nextLine().toUpperCase();
+                if (field != "")
+                    bicicletas[0].setBrand(field);
+                System.out.print("Enter bike's new Model or <"+bicicletas[0].getModel()+">: ");
+                field = scanner.nextLine().toUpperCase();
+                if (field != "")
+                    bicicletas[0].setModel(field);
+                System.out.print("Enter bike's new Type (MTB,ROAD,GRAVEL) or <"+bicicletas[0].getType()+">: ");
+                field = scanner.nextLine().toUpperCase();
+                if (field != "")
+                    bicicletas[0].setType(field);
+                updateValues("bike", bicicletas[0].toUpdateValues(),"id = "+Integer.toString(id_bike),false);
+                bikeMenu();
                 break;
             case 3:
-                searchService();
-                serviceMenu();
+                String[] columns = {"name", "brand", "model","type"};
+                System.out.println("Enter feature to search for:\n1.name\n2.brand\n3.model\n4.type");
+                int chosen = Integer.parseInt(scanner.nextLine());
+                searchBike(columns[chosen-1]);
+                bikeMenu();
                 break;
             case 4:
                 mainMenu();
@@ -236,19 +264,19 @@ public class BikeLog {
     return mantenimientos;
     }
     
-    public static Bike[] bikes () {
+    public static Bike[] bikes (String where) {
         int counter = 0;
-        Bike[] bicicletas = new Bike[getRowCount("bike",false)];
+        Bike[] bicicletas = new Bike[getRowCount("bike "+where,false)];
         // create a database connection
-        try (Connection sqliteConnection = DriverManager.getConnection("jdbc:sqlite:bikelog.db");){
+        try (Connection sqliteConnection = DriverManager.getConnection(url);){
             Statement statement = sqliteConnection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT * FROM bike");
+            ResultSet rs = statement.executeQuery("SELECT * FROM bike "+where);
             while(rs.next()) {
                 int id = rs.getInt("id"); 
                 String name = rs.getString("name");
                 String brand  = rs.getString("brand");;
                 String model = rs.getString("model");;
-                String type = rs.getString("bike_type");;
+                String type = rs.getString("type");;
                 double odo = rs.getDouble("odo");
                 double rideTime = rs.getDouble("ride_time");;
                 bicicletas[counter] = new Bike(id,name,brand,model,type,odo,rideTime); 
@@ -282,26 +310,29 @@ public class BikeLog {
      
     return servicios;
     }
-    public static void updateValues(String table, String set,String where){
+    
+    public static void updateValues(String table, String set,String where, boolean echo){
         // create a database connection
         try(Connection connection = DriverManager.getConnection(url);){
             Statement statement = connection.createStatement();
             String updateString = "UPDATE "+table+ " SET "+set+" WHERE "+where;
-            System.out.println(updateString);
             statement.executeUpdate(updateString);
+            if (echo)
+                System.out.println(updateString);
         }
         catch(SQLException e)
             {e.printStackTrace(System.err); }
     }
     
-    public static void insertValues(String table, String columns, String values){
+    public static void insertValues(String table, String columns, String values, boolean echo){
         // create a database connection
         try(Connection connection = DriverManager.getConnection(url);){
             Statement statement = connection.createStatement();
             //statement.setQueryTimeout(30);  // set timeout to 30 sec.
             String updateString = "INSERT INTO "+table+ "("+columns+") VALUES ("+values+")";
-            //System.out.println(updateString);
             statement.executeUpdate(updateString);
+            if (echo)
+                System.out.println(updateString);
         }
         catch(SQLException e)
             {e.printStackTrace(System.err); }

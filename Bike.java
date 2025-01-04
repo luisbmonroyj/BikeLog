@@ -47,7 +47,7 @@ public class Bike {
     public String toInsertValues(double startingOdo, double startingTime){
         return "'"+name+"','"+brand+"','"+model+"','"+type+"',"+Double.toString(odo)+","+Double.toString(rideTime)+","+Double.toString(startingOdo)+","+Double.toString(startingTime);    
     }
-    public String toUpdateValues(double startingOdo, double startingTime){
+    public String toUpdateValues(){
         return "name = '"+name+"', brand = '"+brand+"', model = '"+model+"', type = '"+type+"'";    
     }
     
