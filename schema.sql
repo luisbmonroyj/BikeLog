@@ -63,6 +63,19 @@ BEGIN
     UPDATE "trip" SET "odo" = "odo" + NEW."distance" WHERE "id_bike" = NEW."id_bike" AND date > NEW."date";
 END;
 
+DROP TRIGGER "delete_odo";
+CREATE TRIGGER "delete_odo"
+AFTER DELETE ON "trip"
+FOR EACH ROW
+BEGIN
+    --updating bike.odo
+    UPDATE "bike" SET "odo" = "starting_odo" + (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = OLD."id_bike"),
+    "ride_time" = "starting_time" + (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = OLD."id_bike") 
+    WHERE "id" = OLD."id_bike";
+    --update trip odo
+    UPDATE "trip" SET "odo" = "odo" - OLD."distance" WHERE "id_bike" = OLD."id_bike" AND date >= OLD."date" ;
+END;
+
 DROP TABLE IF EXISTS "maintenance";
 CREATE TABLE "maintenance" (
     "date" NUMERIC NOT NULL,
@@ -84,5 +97,59 @@ CREATE TRIGGER IF NOT EXISTS "bike_exists_maintenance"
 BEFORE INSERT ON "maintenance"
 FOR EACH ROW
 BEGIN
-    UPDATE maintenance SET id_service = (SELECT id FROM service WHERE id = NEW.id_service);
+    UPDATE 
+        maintenance SET 
+            id_service = (SELECT id FROM service WHERE id = NEW.id_service)
+    WHERE date = NEW.date AND id_service = NEW.id_service;
+
+END;
+
+--add odo reading to maintenance
+DROP TRIGGER IF EXISTS "add_odo_maintenance";
+CREATE TRIGGER IF NOT EXISTS "add_odo_maintenance"
+AFTER INSERT ON "maintenance"
+FOR EACH ROW
+BEGIN
+    --enter odo reading by default
+    UPDATE 
+        maintenance SET 
+            odo = (SELECT MAX (odo) FROM trip WHERE date < NEW.date),
+            duration = JSON_REPLACE(duration, '$.km', (SELECT MAX (odo) FROM trip WHERE date < NEW.date),
+                                            '$.hours', (SELECT MAX (ride_time) FROM trip WHERE date < NEW.date))
+    WHERE date = NEW.date;
+END;
+
+DROP TRIGGER IF EXISTS "update_duration_maintenance";
+CREATE TRIGGER IF NOT EXISTS "update_duration_maintenance"
+AFTER UPDATE ON "maintenance"
+FOR EACH ROW
+BEGIN
+    -- if a previous id_service,id_bike exists, update with the difference
+    UPDATE 
+        maintenance SET 
+            duration = 
+            JSON_REPLACE(duration, '$.km', 
+                (SELECT JSON_EXTRACT(duration, '$.km') as "km" FROM maintenance WHERE 
+                    id_bike = NEW.id_bike AND 
+                    id_service = NEW.id_service 
+                    AND date = NEW.date) -
+                (SELECT MAX(JSON_EXTRACT(duration, '$.km')) as "km" FROM maintenance WHERE 
+                    id_bike = NEW.id_bike AND 
+                    id_service = NEW.id_service AND 
+                    "date" < NEW.date),
+                                '$.hours', 
+                (SELECT JSON_EXTRACT(duration, '$.hours') as "hours" FROM maintenance WHERE 
+                    id_bike = NEW.id_bike AND 
+                    id_service = NEW.id_service 
+                    AND date = NEW.date) -
+                (SELECT MAX(JSON_EXTRACT(duration, '$.hours')) as "hours" FROM maintenance WHERE 
+                    id_bike = NEW.id_bike AND 
+                    id_service = NEW.id_service AND 
+                    "date" < NEW.date)
+            )
+    WHERE date = NEW.date AND 
+            (SELECT date FROM maintenance WHERE 
+            id_bike = NEW.id_bike AND 
+            id_service = NEW.id_service AND
+            "date" < NEW.date) IS NOT NULL;
 END;
