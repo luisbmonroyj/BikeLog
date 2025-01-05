@@ -22,6 +22,17 @@ CREATE TABLE "bike" (
     PRIMARY KEY ("id")
 );
 
+CREATE TABLE "trip" (
+    "date" NUMERIC NOT NULL,
+    "id_bike" INTEGER NOT NULL,
+    "trip_time" NUMERIC NOT NULL,
+    "distance" NUMERIC NOT NULL,
+    "max_speed" NUMERIC NOT NULL,
+    "velocity" NUMERIC,
+    "odo" NUMERIC,
+    FOREIGN KEY ("id_bike") REFERENCES "bike"("id")
+);
+
 CREATE TABLE "maintenance" (
     "date" NUMERIC,
     "id_bike" INTEGER,
@@ -35,18 +46,6 @@ CREATE TABLE "maintenance" (
     FOREIGN KEY ("id_bike") REFERENCES "bike"("id"),
     FOREIGN KEY ("id_service") REFERENCES "service"("id")
 );
-
-CREATE TABLE "trip" (
-    "date" NUMERIC NOT NULL,
-    "id_bike" INTEGER NOT NULL,
-    "trip_time" NUMERIC NOT NULL,
-    "distance" NUMERIC NOT NULL,
-    "max_speed" NUMERIC NOT NULL,
-    "velocity" NUMERIC,
-    "odometer" NUMERIC,
-    FOREIGN KEY ("id_bike") REFERENCES "bike"("id")
-);
-
 
 CREATE TRIGGER IF NOT EXISTS "update_duration"
 AFTER INSERT ON "maintenance"
@@ -63,24 +62,36 @@ BEGIN
     UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.km', NEW."odo")
         WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike" AND date = NEW."date" AND (SELECT JSON_EXTRACT(duration, '$.km') AS km) IS NULL;
 END;
---     UPDATE "trip" SET "velocity" = NEW."distance" / NEW."trip_time" WHERE "date" = NEW."date";
 
 --Trigger for bike updating
-CREATE TRIGGER "update_bike"
+CREATE TRIGGER "update_velocity_odo"
 AFTER INSERT ON "trip"
 FOR EACH ROW
 BEGIN
---updating bike.odo
+    --updating bike.odo
     UPDATE "bike" SET "odo" = "starting_odo" + (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike"),
     "ride_time" = "starting_time" + (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike") 
     WHERE "id" = NEW."id_bike";
-    --update velocity  
-    --update trip odo
-    UPDATE "trip" SET "velocity" = NEW."distance" / NEW."trip_time", 
-            "odometer" = (SELECT "starting_odo" FROM "bike" WHERE id = NEW."id_bike") + 
-            (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date < NEW."date" ) 
+    --update velocity and trip odo
+    UPDATE "trip" SET "velocity" = NEW."distance" / NEW."trip_time" 
+        ,"odo" = (SELECT "starting_odo" FROM "bike" WHERE id = NEW."id_bike") + 
+        (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
         WHERE "date" = NEW."date";
-    
 END;
+
+CREATE TRIGGER "delete_odo"
+AFTER DELETE ON "trip"
+FOR EACH ROW
+BEGIN
+    --updating bike.odo
+    UPDATE "bike" SET "odo" = "starting_odo" + (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = OLD."id_bike"),
+    "ride_time" = "starting_time" + (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = OLD."id_bike") 
+    WHERE "id" = OLD."id_bike";
+    --update trip odo
+    UPDATE "trip" SET "odo" = "odo" - OLD."distance" WHERE "id_bike" = OLD."id_bike" AND date >= OLD."date" ;
+END;
+
 --to import a csv with column names
 --.import --csv data-no-ids.csv tempTable
+
+-- .read /home/luisbmonroyj/dev-projects/BikeLog/schema.sql

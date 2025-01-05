@@ -36,35 +36,143 @@ public class BikeLog {
                     System.out.println(salidas[i].toString());
                 break;
             case 2:    
+                maintenanceMenu();
+                /*
                 Maintenance[] mantenimientos = maintenances();
                 System.out.println("Mantenimientos");
                 for (int i=0;i<mantenimientos.length;i++)
                     System.out.println(mantenimientos[i].toString());
+                */
                 break;
             case 3:
-                /*Service[] servicios = services();
-                System.out.println("Servicios");
-                for (int i=0;i<servicios.length;i++)
-                    System.out.println(servicios[i].toString());
-                */
                 serviceMenu();
                 break;
             case 4:
-            /*
-            Bike[] bicicletas = bikes();
-            System.out.println("Bicicletas");
-            for (int i=0;i<bicicletas.length;i++)
-                System.out.println(bicicletas[i].toString());
-            */
-            bikeMenu();
+                bikeMenu();
             break;  
             case 5:
                 System.out.println("goodbye");
                 break;
         }                  
     }
+
+    public static void maintenanceMenu(){
+        //"date,id_bike,odo,id_service,brand,reference,price,description,duration";
+        String field = "";
+        System.out.println("\nMAINTENANCES. ENTER AN OPTION");
+        System.out.println("1.Add new Maintenance\n2.Edit Maintenance\n3.Search\n4.Main menu\n5.Exit");
+        int option = Integer.parseInt(scanner.nextLine());
+        switch (option) {
+            case 1:
+                LocalDate date = setDate ("Maintenance");
+                int id_bike = setBikeId();
+                double odo = 0.0;
+                System.out.println("odometer reading: \n1.Before\n2.After");
+                field = scanner.nextLine();
+                //int id_service = 0;
+                /*
+                if (field == "1"){
+                    odo = 0.0;
+                    //SELECT MAX (odo) FROM trip WHERE date <= <fecha de maintenance>
+                    System.out.println("before UNDER CONSTRUCTION");
+                }
+                else{
+                    odo = 10.0;
+                    //SELECT MAX (odo) FROM trip WHERE date = <fecha de maintenance>
+                    System.out.println("after UNDER CONSTRUCTION");
+                }
+                */
+                odo = Double.parseDouble(field);
+                
+                int id_service = setId_service();
+                
+                System.out.print("Enter Brand: ");
+                String brand = scanner.nextLine().toUpperCase();
+                
+                System.out.print("Enter Reference: ");
+                String reference = scanner.nextLine().toUpperCase();
+                
+                double price = 0.0;
+                System.out.print("Enter Price (COP K$) or <0.0>: ");
+                field = scanner.nextLine();
+                if (field != "")
+                    price = Double.parseDouble(field);
+                
+                System.out.print("Enter Description: ");
+                String description = scanner.nextLine();
+                
+                String duration = "{\"km\": 0.0, \"hours\":0.0}";
+                
+                Maintenance maintenance = new Maintenance(date,id_bike,odo,id_service,brand,reference,price,description,duration);
+                insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
+                maintenanceMenu();
+                break;
+            case 2:
+                date = setDate ("Maintenance");
+                double km = getHours(1, 2, date.toString(), false, true);
+                System.out.print(Double.toString(km));
+                
+            /*
+                System.out.print("Enter Service ID or <search>: ");
+                field = scanner.nextLine();
+                int id_service = 0;
+                if (field == "")
+                    id_service = searchService();
+                else
+                    id_service = Integer.parseInt(field);
+                Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
+                System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
+                field = scanner.nextLine();
+                servicio[0].setName(field);
+                if (field != "")
+                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service),false);
+                serviceMenu();
+                */
+                break;
+            case 3:
+                searchService();
+                serviceMenu();
+                break;
+            case 4:
+                mainMenu();
+                break;
+            case 5:
+                System.out.println("goodbye");
+                break;
+        }
+        
+    }
+
+    public static LocalDate setDate (String event){
+        System.out.print("Enter new "+event+" date (YYYYY-MM-DD) or <today>: ");
+        String field = scanner.nextLine();
+        String[] dateString = {};
+        LocalDate date = LocalDate.now();
+        if (field != ""){
+            dateString = field.split("[-]");
+            date = date.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
+        }
+        //System.out.println(date.toString());
+        return date;
+    }
+
+    public static int setBikeId (){
+        System.out.print("Enter Bike ID or <list>: ");
+        String field = scanner.nextLine();
+        if (field == "") {
+            Bike[] bicicletas = bikes("");
+            System.out.println("\n List of bikes: \nname,brand,model,type,odo,ride_time");
+            for (int i=0;i<bicicletas.length;i++)
+                System.out.println(bicicletas[i].toString());
+            System.out.print("Enter Bike ID: ");
+            field = scanner.nextLine();
+        }
+        return Integer.parseInt(field);
+    }
+
     public static void serviceMenu(){
         String name = "";
+        String field = "";
         System.out.println("\nSERVICES. ENTER AN OPTION");
         System.out.println("1.Add new Service\n2.Edit Service\n3.Search\n4.Main menu\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
@@ -76,13 +184,7 @@ public class BikeLog {
                 insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
                 break;
             case 2:
-                System.out.print("Enter Service ID or <search>: ");
-                String field = scanner.nextLine();
-                int id_service = 0;
-                if (field == "")
-                    id_service = searchService();
-                else
-                    id_service = Integer.parseInt(field);
+                int id_service = setId_service();
                 Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
                 System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
                 field = scanner.nextLine();
@@ -115,17 +217,17 @@ public class BikeLog {
         return Integer.parseInt(scanner.nextLine());
     }
     
-    public static void searchBike (String column){
-        System.out.print("Enter keyword for Bike "+column+": ");
+    public static int setId_service(){
+        int id_service = 0;
+        System.out.print("Enter Service ID or <search>: ");
         String field = scanner.nextLine();
-        Bike[] servicios = bikes("WHERE "+column+" LIKE '%"+field+"%'");//can be various
-        System.out.println("Bikes matching keyword: \nID,name,brand,model,odo,ride_time");
-        for (int i=0;i<servicios.length;i++)
-            System.out.println(servicios[i].toString());
-        //System.out.print("Enter Servce ID: ");
-        //return Integer.parseInt(scanner.nextLine());
+        if (field == "")
+            id_service = searchService();
+        else
+            id_service = Integer.parseInt(field);
+        return id_service;        
     }
-    
+
     public static void bikeMenu(){
         System.out.println("\nBIKES. ENTER AN OPTION");
         System.out.println("1.Add new Bike\n2.Edit Bike\n3.Search\n4.Main menu\n5.Exit");
@@ -202,7 +304,18 @@ public class BikeLog {
                 break;
         }
     }
-
+    
+    public static void searchBike (String column){
+        System.out.print("Enter keyword for Bike "+column+": ");
+        String field = scanner.nextLine();
+        Bike[] servicios = bikes("WHERE "+column+" LIKE '%"+field+"%'");//can be various
+        System.out.println("Bikes matching keyword: \nID,name,brand,model,odo,ride_time");
+        for (int i=0;i<servicios.length;i++)
+            System.out.println(servicios[i].toString());
+        //System.out.print("Enter Servce ID: ");
+        //return Integer.parseInt(scanner.nextLine());
+    }
+    
     public static Trip[] trips () {
         int counter = 0;
         Trip[] salidas = new Trip[getRowCount("trip",true)];
@@ -312,30 +425,32 @@ public class BikeLog {
     }
     
     public static void updateValues(String table, String set,String where, boolean echo){
+        String updateString = "UPDATE "+table+ " SET "+set+" WHERE "+where;
         // create a database connection
         try(Connection connection = DriverManager.getConnection(url);){
             Statement statement = connection.createStatement();
-            String updateString = "UPDATE "+table+ " SET "+set+" WHERE "+where;
             statement.executeUpdate(updateString);
+        }
+        catch(SQLException e){
+            e.printStackTrace(System.err); 
             if (echo)
                 System.out.println(updateString);
         }
-        catch(SQLException e)
-            {e.printStackTrace(System.err); }
     }
     
     public static void insertValues(String table, String columns, String values, boolean echo){
+        String updateString = "INSERT INTO "+table+ "("+columns+") VALUES ("+values+")";
         // create a database connection
         try(Connection connection = DriverManager.getConnection(url);){
             Statement statement = connection.createStatement();
             //statement.setQueryTimeout(30);  // set timeout to 30 sec.
-            String updateString = "INSERT INTO "+table+ "("+columns+") VALUES ("+values+")";
             statement.executeUpdate(updateString);
+        }
+        catch(SQLException e) {
+            e.printStackTrace(System.err); 
             if (echo)
                 System.out.println(updateString);
         }
-        catch(SQLException e)
-            {e.printStackTrace(System.err); }
     }
 
     public static int getRowCount (String table, boolean orderByDate) {
@@ -356,5 +471,25 @@ public class BikeLog {
             {e.printStackTrace(System.err); }
         
     return counter;
+    }
+
+    public static double getHours (int id_bike, int id_service, String date, boolean orderByDate,boolean echo) {
+        double hours = 0.0;
+        String queryString = "SELECT MAX(JSON_EXTRACT(duration, '$.hours')) as hours FROM maintenance WHERE id_bike = "+id_bike;
+        queryString += " AND id_service = "+id_service+" AND date < '"+date+"'";
+        // create a database connection
+        try (Connection sqliteConnection = DriverManager.getConnection(url);){
+            Statement statement = sqliteConnection.createStatement();
+            ResultSet rs = statement.executeQuery(queryString);
+            while(rs.next())
+                hours = rs.getDouble("hours"); 
+            sqliteConnection.close();
+        }
+        catch(SQLException e){
+            e.printStackTrace(System.err); 
+            if (echo)
+                System.out.println(queryString);
+        }   
+    return hours;
     }
 }

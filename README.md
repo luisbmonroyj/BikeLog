@@ -53,15 +53,17 @@ SELECT * FROM "trip" WHERE velocity >= 17 AND "id_bike" = 1;
 
 ### Creating trips
 * not recommended time FORMAT as trip_time
---INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed","velocity",odometer) VALUES
+--INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed","velocity",odo) VALUES
 --('2019-10-01',1,'0:42:12',21.36,41,30.37,0.0);
 
 * USING DECIMAL TIME
-INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed","velocity",odometer) VALUES
+INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed","velocity",odo) VALUES
 ('2019-10-01',1,0.70333333,21.36,41,30.37,0.0);
 --A new trip modifies bikes' data
 INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed","velocity") VALUES
 ('2019-10-02',1,0.8194444445,26.12,43.3,31.88);
+SELECT * FROM trip;
+SELECT * FROM bike;
 --trigger calculate_velocity
 INSERT INTO "trip" ("date","id_bike","trip_time","distance","max_speed") 
 VALUES ('2019-10-03',1,0.323333333,5.58,38);
