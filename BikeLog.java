@@ -234,9 +234,11 @@ public class BikeLog {
                 System.out.print("Enter new Bike name: ");
                 newBike.setName(scanner.nextLine().toUpperCase());
                 System.out.print("Enter new Bike brand: ");
-                newBike.setBrand(scanner.nextLine().toUpperCase());
+                String brand = scanner.nextLine().toUpperCase();
+                newBike.setBrand(brand);
                 System.out.print("Enter new Bike model: ");
-                newBike.setModel(scanner.nextLine().toUpperCase());
+                String model = scanner.nextLine().toUpperCase();
+                newBike.setModel(model);
                 System.out.print("Enter new Bike type (ROAD/MTB/GRAVEL): ");
                 newBike.setType(scanner.nextLine().toUpperCase());
                 newBike.setOdo(0.0);
@@ -254,6 +256,22 @@ public class BikeLog {
                 //odo and ride_time goes to databases' (starting_odo and starting_time) columns instead of odo and ride_time
                 //because these last ones stores kilometers and hours registered by the user
                 insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time),false);
+                //a Maintenance with id_service = 1 must be created
+                LocalDate date = setDate ("Acquisition");
+                Bike[] bike = bikes("WHERE name = '"+newBike.getName()+"'");
+                double price = 0.0;
+                System.out.print("Enter Price (COP K$) or <0.0>: ");
+                field = scanner.nextLine();
+                if (field != "")
+                    price = Double.parseDouble(field);
+                
+                System.out.print("Enter Description: ");
+                String description = scanner.nextLine();
+                
+                String duration = "{\"km\": 0.0, \"hours\":0.0}";
+                
+                Maintenance maintenance = new Maintenance(date,bike[0].getId(),0.0,1,brand,model,price,description,duration);
+                insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
                 break;
             case 2:
                 Bike[] bicicletas = bikes("");
