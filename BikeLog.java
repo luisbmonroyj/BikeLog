@@ -257,7 +257,7 @@ public class BikeLog {
                 //because these last ones stores kilometers and hours registered by the user
                 insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time),false);
                 //a Maintenance with id_service = 1 must be created
-                LocalDate date = setDate ("Acquisition");
+                LocalDate date = setDate ("Bike Acquisition");
                 Bike[] bike = bikes("WHERE name = '"+newBike.getName()+"'");
                 double price = 0.0;
                 System.out.print("Enter Price (COP K$) or <0.0>: ");

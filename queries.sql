@@ -1,9 +1,11 @@
 INSERT INTO "service" ("name") VALUES ('bicycle');
 INSERT INTO "service" ("name") VALUES ('pedals');
-INSERT INTO "service" ("name") VALUES ('rear brake pad');
-INSERT INTO "service" ("name") VALUES ('front brake pad');
+INSERT INTO "service" ("name") VALUES ('rear brake pads');
+INSERT INTO "service" ("name") VALUES ('front brake pads');
 INSERT INTO "service" ("name") VALUES ('rear tire');
 INSERT INTO "service" ("name") VALUES ('front tire');
+--unique name tested
+
 
 DELETE FROM bike;
 INSERT INTO "bike" ("name","brand","model","type","odo","ride_time","starting_odo","starting_time") 
