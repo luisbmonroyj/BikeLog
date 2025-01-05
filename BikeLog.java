@@ -30,7 +30,8 @@ public class BikeLog {
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
             case 1:
-                Trip[] salidas = trips();
+            //comprobar que se haya creado una bicicleta en maintenance antes de ingresar el primer trip    
+            Trip[] salidas = trips();
                 System.out.println("Salidas");
                 for (int i=0;i<salidas.length;i++)
                     System.out.println(salidas[i].toString());
@@ -66,24 +67,6 @@ public class BikeLog {
             case 1:
                 LocalDate date = setDate ("Maintenance");
                 int id_bike = setBikeId();
-                double odo = 0.0;
-                System.out.println("odometer reading: \n1.Before\n2.After");
-                field = scanner.nextLine();
-                //int id_service = 0;
-                /*
-                if (field == "1"){
-                    odo = 0.0;
-                    //SELECT MAX (odo) FROM trip WHERE date <= <fecha de maintenance>
-                    System.out.println("before UNDER CONSTRUCTION");
-                }
-                else{
-                    odo = 10.0;
-                    //SELECT MAX (odo) FROM trip WHERE date = <fecha de maintenance>
-                    System.out.println("after UNDER CONSTRUCTION");
-                }
-                */
-                odo = Double.parseDouble(field);
-                
                 int id_service = setId_service();
                 
                 System.out.print("Enter Brand: ");
@@ -103,9 +86,22 @@ public class BikeLog {
                 
                 String duration = "{\"km\": 0.0, \"hours\":0.0}";
                 
-                Maintenance maintenance = new Maintenance(date,id_bike,odo,id_service,brand,reference,price,description,duration);
+                Maintenance maintenance = new Maintenance(date,id_bike,0.0,id_service,brand,reference,price,description,duration);
                 insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
                 maintenanceMenu();
+                //field = scanner.nextLine();
+                /*
+                if (field == "1"){
+                    odo = 0.0;
+                    //SELECT MAX (odo) FROM trip WHERE date <= <fecha de maintenance>
+                    System.out.println("before UNDER CONSTRUCTION");
+                }
+                else{
+                    odo = 10.0;
+                    //SELECT MAX (odo) FROM trip WHERE date = <fecha de maintenance>
+                    System.out.println("after UNDER CONSTRUCTION");
+                }
+                */
                 break;
             case 2:
                 date = setDate ("Maintenance");

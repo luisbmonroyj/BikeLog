@@ -34,8 +34,8 @@ CREATE TABLE "trip" (
 );
 
 CREATE TABLE "maintenance" (
-    "date" NUMERIC,
-    "id_bike" INTEGER,
+    "date" NUMERIC NOT NULL,
+    "id_bike" INTEGER NOT NULL,
     "odo" NUMERIC,
     "id_service" INTEGER NOT NULL,
     "brand" TEXT,
@@ -47,6 +47,7 @@ CREATE TABLE "maintenance" (
     FOREIGN KEY ("id_service") REFERENCES "service"("id")
 );
 
+DROP TRIGGER IF EXISTS "update_duration";
 CREATE TRIGGER IF NOT EXISTS "update_duration"
 AFTER INSERT ON "maintenance"
 FOR EACH ROW
@@ -63,7 +64,28 @@ BEGIN
         WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike" AND date = NEW."date" AND (SELECT JSON_EXTRACT(duration, '$.km') AS km) IS NULL;
 END;
 
+DROP TRIGGER IF EXISTS "update_duration";
+CREATE TRIGGER IF NOT EXISTS "update_duration"
+AFTER INSERT ON "maintenance"
+FOR EACH ROW
+BEGIN
+    --duration = JSON_REPLACE(KEY1, VALUE1, KEY2, VALUE2)
+    UPDATE maintenance SET duration = JSON_REPLACE(duration, 
+    '$.km', (SELECT SUM(distance) FROM trip WHERE id_bike = NEW."id_bike" AND date BETWEEN 
+    (SELECT date FROM maintenance WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike") AND NEW."date"),
+    '$.hours', (SELECT SUM(trip_time) FROM trip WHERE id_bike = NEW."id_bike" AND date BETWEEN 
+    (SELECT date FROM maintenance WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike") AND NEW."date")    ) 
+        WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike" AND date = NEW."date";
+    --no esta leyendo odo ni horas del mismo mantenimiento anterior
+    UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.km', NEW."odo", 
+    '$.hours', (SELECT SUM (trip_time) FROM trip WHERE date <= (SELECT MAX(date) FROM trip WHERE odo <= 1720)))
+        WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike" AND date = NEW."date" AND (SELECT JSON_EXTRACT(duration, '$.km') AS km) IS NULL;
+
+END;
+
+
 --Trigger for bike updating
+DROP TRIGGER IF EXISTS "update_velocity_odo";
 CREATE TRIGGER "update_velocity_odo"
 AFTER INSERT ON "trip"
 FOR EACH ROW
@@ -77,6 +99,7 @@ BEGIN
         ,"odo" = (SELECT "starting_odo" FROM "bike" WHERE id = NEW."id_bike") + 
         (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
         WHERE "date" = NEW."date";
+    UPDATE "trip" SET "odo" = "odo" + NEW."distance" WHERE "id_bike" = NEW."id_bike" AND date > NEW."date";
 END;
 
 CREATE TRIGGER "delete_odo"
