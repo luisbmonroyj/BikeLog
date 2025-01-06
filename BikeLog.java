@@ -254,9 +254,9 @@ public class BikeLog {
                 if (field != "")
                     ride_time= Double.parseDouble(field);
                 //odo and ride_time goes to databases' (starting_odo and starting_time) columns instead of odo and ride_time
-                //because these last ones stores kilometers and hours registered by the user
+                //because these last ones store kilometers and hours registered by the user
                 insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time),false);
-                //a Maintenance with id_service = 1 must be created
+                //a Maintenance with id_service = X must be created
                 LocalDate date = setDate ("Bike Acquisition");
                 Bike[] bike = bikes("WHERE name = '"+newBike.getName()+"'");
                 double price = 0.0;
@@ -264,12 +264,9 @@ public class BikeLog {
                 field = scanner.nextLine();
                 if (field != "")
                     price = Double.parseDouble(field);
-                
                 System.out.print("Enter Description: ");
                 String description = scanner.nextLine();
-                
                 String duration = "{\"km\": 0.0, \"hours\":0.0}";
-                
                 Maintenance maintenance = new Maintenance(date,bike[0].getId(),0.0,1,brand,model,price,description,duration);
                 insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
                 break;

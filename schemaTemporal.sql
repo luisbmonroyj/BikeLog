@@ -135,6 +135,8 @@ BEGIN
     --UPDATE odo column
     UPDATE maintenance SET odo = (SELECT MAX("odo") FROM "trip" WHERE date <= NEW."date"),
         WHERE id_service = NEW."id_service" AND  id_bike = NEW."id_bike" AND date = NEW."date";
+    --SELECT duration FROM maintenance WHERE id_bike = 1 AND id_service = 2 AND date < '2020-02-07';
+
 END;
 
 --Trigger for bike updating
@@ -158,6 +160,47 @@ BEGIN
 END;
 
 
+
+DROP TRIGGER IF EXISTS "insert_odo_maintenance";
+CREATE TRIGGER IF NOT EXISTS "insert_odo_maintenance"
+AFTER INSERT ON "maintenance"
+FOR EACH ROW
+BEGIN
+    UPDATE 
+        maintenance SET 
+            odo = 0.0,
+            duration = '{"km": 0, "hours": 0}'
+    WHERE date = NEW.date AND 
+            (SELECT date FROM maintenance WHERE 
+            id_bike = NEW.id_bike AND 
+            id_service = NEW.id_service AND
+            "date" < NEW.date) IS NULL;
+END;
+
+--insert odo and duration by default
+DROP TRIGGER IF EXISTS "insert_odo_maintenance";
+CREATE TRIGGER IF NOT EXISTS "insert_odo_maintenance"
+AFTER INSERT ON "maintenance"
+FOR EACH ROW
+BEGIN
+    UPDATE 
+        maintenance SET 
+            odo = 0.0,
+            duration = '{"km": 0, "hours": 0}'
+    WHERE date = NEW.date AND id_service = NEW.id_service AND id_bike = NEW.id_bike;
+END;
+
+UPDATE 
+        maintenance SET 
+            odo = 0.0,
+            duration = '{"km": 0, "hours": 0}'
+    WHERE date = NEW.date AND 
+            (SELECT date FROM maintenance WHERE 
+            id_bike = NEW.id_bike AND 
+            id_service = NEW.id_service AND
+            "date" < NEW.date) IS NULL;
+    
+    
 DROP TRIGGER "delete_odo";
 CREATE TRIGGER "delete_odo"
 AFTER DELETE ON "trip"
@@ -171,11 +214,27 @@ BEGIN
     UPDATE "trip" SET "odo" = "odo" - OLD."distance" WHERE "id_bike" = OLD."id_bike" AND date >= OLD."date" ;
 END;
 
+    --SELECT MAX(JSON_EXTRACT(duration, '$.km')) as last_odo FROM maintenance WHERE id_bike = 1 AND id_service = 3 AND date < '2023-03-05';
+    -- UPDATE 
+    --     maintenance SET 
+    --         odo = 0.0,
+    --         duration = JSON_REPLACE(duration, '$.km', 0.0, '$.hours',0.0)
+    -- WHERE odo IS NULL AND date = NEW.date;
+
+
+
+UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.km', 720) WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07';
+UPDATE maintenance SET duration = JSON_REPLACE(duration, '$.hours', 100) WHERE id_service = 2 AND  id_bike = 1 AND date < '2020-02-07';
+
 --to import a csv with column names
 --.import --csv data-no-ids.csv tempTable
+
 
 --to import a csv without column names
 --.import --csv --skip 1 data.csv destinyTable
 --.import --csv --skip 1 trip-raw-min-data.csv trip
 
 -- .read /home/luisbmonroyj/dev-projects/BikeLog/schema.sql
+
+--to check time of queries
+-- .timer on
