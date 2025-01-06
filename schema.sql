@@ -40,7 +40,7 @@ CREATE TRIGGER IF NOT EXISTS "bike_exists"
 BEFORE INSERT ON "trip"
 FOR EACH ROW
 BEGIN
-    UPDATE trip SET id_bike = (SELECT id FROM bike WHERE id = NEW.id_bike);
+    UPDATE "trip" SET "id_bike" = (SELECT "id" FROM "bike" WHERE "id" = NEW."id_bike") WHERE "id_bike" = NEW."id_bike";
 END;
 
 --Trigger for bike updating

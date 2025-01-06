@@ -113,7 +113,7 @@ public class BikeLog {
                 field = scanner.nextLine();
                 int id_service = 0;
                 if (field == "")
-                    id_service = searchService();
+                    id_service = searchService(false);
                 else
                     id_service = Integer.parseInt(field);
                 Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
@@ -126,7 +126,7 @@ public class BikeLog {
                 */
                 break;
             case 3:
-                searchService();
+                searchService(false);
                 serviceMenu();
                 break;
             case 4:
@@ -178,6 +178,7 @@ public class BikeLog {
                 name = scanner.nextLine();
                 Service newService = new Service(0,name);
                 insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
+                serviceMenu();
                 break;
             case 2:
                 int id_service = setId_service();
@@ -190,7 +191,7 @@ public class BikeLog {
                 serviceMenu();
                 break;
             case 3:
-                searchService();
+                searchService(false);
                 serviceMenu();
                 break;
             case 4:
@@ -202,15 +203,19 @@ public class BikeLog {
         }
     }
 
-    public static int searchService (){
+    public static int searchService (boolean input){
         System.out.print("Enter keyword for Service name: ");
         String field = scanner.nextLine();
         Service[] servicios = services("WHERE name LIKE '%"+field+"%'");//can be various
         System.out.println("Services matching keyword: \nID,name");
         for (int i=0;i<servicios.length;i++)
             System.out.println(servicios[i].toString());
-        System.out.print("Enter Servce ID: ");
-        return Integer.parseInt(scanner.nextLine());
+        if (input){
+            System.out.print("Enter Servce ID: ");
+            return Integer.parseInt(scanner.nextLine());
+        }
+        else
+            return 0;
     }
     
     public static int setId_service(){
@@ -218,7 +223,7 @@ public class BikeLog {
         System.out.print("Enter Service ID or <search>: ");
         String field = scanner.nextLine();
         if (field == "")
-            id_service = searchService();
+            id_service = searchService(true);
         else
             id_service = Integer.parseInt(field);
         return id_service;        
