@@ -89,7 +89,4 @@ SELECT * FROM maintenance ORDER BY date;
 
 --2022-02-10	STEF	2230	Pastillas Freno FF	GW	NONE	16
 
-SELECT MAX(JSON_EXTRACT(duration, '$.km')) as "km" FROM maintenance WHERE 
-                    id_bike = 2 AND 
-                    id_service = 7 AND 
-                    "date" = (SELECT MAX ("date") FROM maintenance WHERE "date" < '2021-07-05');
+--formatting real numbers: SELECT printf("%.2f", floatField) AS field FROM table;

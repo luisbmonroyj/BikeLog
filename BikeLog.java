@@ -38,12 +38,6 @@ public class BikeLog {
                 break;
             case 2:    
                 maintenanceMenu();
-                /*
-                Maintenance[] mantenimientos = maintenances();
-                System.out.println("Mantenimientos");
-                for (int i=0;i<mantenimientos.length;i++)
-                    System.out.println(mantenimientos[i].toString());
-                */
                 break;
             case 3:
                 serviceMenu();
@@ -60,15 +54,23 @@ public class BikeLog {
     public static void maintenanceMenu(){
         //"date,id_bike,odo,id_service,brand,reference,price,description,duration";
         String field = "";
+        int id_bike = 0;
+        int id_service = 0;
         System.out.println("\nMAINTENANCES. ENTER AN OPTION");
         System.out.println("1.Add new Maintenance\n2.Edit Maintenance\n3.Search\n4.Main menu\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
             case 1:
-                LocalDate date = setDate ("Maintenance");
-                int id_bike = setBikeId();
-                int id_service = setId_service();
-                
+                LocalDate date = setDate ("new Maintenance");
+                id_bike = setBikeId();
+                id_service = setId_service(":");
+                if (id_service == 0){
+                    System.out.print("Enter new Service name: ");
+                    String name = scanner.nextLine();
+                    Service newService = new Service(0,name);
+                    insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
+                    id_service = services("WHERE name = '"+newService.getName()+"'")[0].getId();
+                }
                 System.out.print("Enter Brand: ");
                 String brand = scanner.nextLine().toUpperCase();
                 
@@ -89,24 +91,20 @@ public class BikeLog {
                 Maintenance maintenance = new Maintenance(date,id_bike,0.0,id_service,brand,reference,price,description,duration);
                 insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
                 maintenanceMenu();
-                //field = scanner.nextLine();
-                /*
-                if (field == "1"){
-                    odo = 0.0;
-                    //SELECT MAX (odo) FROM trip WHERE date <= <fecha de maintenance>
-                    System.out.println("before UNDER CONSTRUCTION");
-                }
-                else{
-                    odo = 10.0;
-                    //SELECT MAX (odo) FROM trip WHERE date = <fecha de maintenance>
-                    System.out.println("after UNDER CONSTRUCTION");
-                }
-                */
                 break;
             case 2:
-                date = setDate ("Maintenance");
-                double km = getHours(1, 2, date.toString(), false, true);
-                System.out.print(Double.toString(km));
+                System.out.println("For simplicity, first search between done maintenances to edit one of them");
+                Maintenance[] mantenimientos = searchMaintenance();
+                System.out.println(""); 
+                date = setDate("Maintenance");
+                System.out.println("Maintenances found for date "+date.toString()+":\n"+mantenimientos[0].getColumnList()); 
+                for (int i = 0; i< mantenimientos.length;i++){
+                    if (mantenimientos[i].getDate().toString().equals(date.toString()))
+                        System.out.println(mantenimientos[i].toString()); 
+                }
+                LocalDate newDate = setDate("duration");
+                maintenanceMenu();
+                    //double km = getHours(1, 2, date.toString(), false, true);
                 
             /*
                 System.out.print("Enter Service ID or <search>: ");
@@ -126,8 +124,8 @@ public class BikeLog {
                 */
                 break;
             case 3:
-                searchService(false);
-                serviceMenu();
+                searchMaintenance();
+                maintenanceMenu();
                 break;
             case 4:
                 mainMenu();
@@ -139,8 +137,29 @@ public class BikeLog {
         
     }
 
+    public static Maintenance[] searchMaintenance(){
+        System.out.println("If initial date is <today>, all maintenances done so far and meeting criteria will be shown");
+        int id_bike = setBikeId();
+        int id_service = setId_service(" or <show all>: ");
+        String query = "WHERE id_bike = "+Integer.toString(id_bike);
+        if (id_service != 0)
+            query += " AND id_service = "+Integer.toString(id_service);
+        LocalDate date1 = setDate ("Maintenance initial");
+        if (date1.toString().equals(LocalDate.now().toString())) 
+            query += " AND date <= '"+date1.toString()+"'";
+        else{
+            LocalDate date2 = setDate ("Maintenance final");
+            query+= " AND date >= '"+date1.toString()+"' AND date <= '"+date2.toString()+"' ";
+        }
+        Maintenance[] mantenimientos = maintenances(query);
+        System.out.println("List of maintenances:\ndate,id_bike,id_service,brand,reference,price,description,duration");
+        for (int i=0;i<mantenimientos.length;i++)
+            System.out.println(mantenimientos[i].toString());
+        return mantenimientos;
+    }
+
     public static LocalDate setDate (String event){
-        System.out.print("Enter new "+event+" date (YYYYY-MM-DD) or <today>: ");
+        System.out.print("Enter "+event+" date (YYYYY-MM-DD) or <today>: ");
         String field = scanner.nextLine();
         String[] dateString = {};
         LocalDate date = LocalDate.now();
@@ -181,9 +200,9 @@ public class BikeLog {
                 serviceMenu();
                 break;
             case 2:
-                int id_service = setId_service();
+                int id_service = setId_service(":");
                 Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
-                System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
+                System.out.print("Enter Service new name or <"+servicio[0].getName()+">: ");
                 field = scanner.nextLine();
                 servicio[0].setName(field);
                 if (field != "")
@@ -191,7 +210,7 @@ public class BikeLog {
                 serviceMenu();
                 break;
             case 3:
-                searchService(false);
+                searchService(false,"is false");
                 serviceMenu();
                 break;
             case 4:
@@ -203,7 +222,7 @@ public class BikeLog {
         }
     }
 
-    public static int searchService (boolean input){
+    public static int searchService (boolean input,String orOoption){
         System.out.print("Enter keyword for Service name: ");
         String field = scanner.nextLine();
         Service[] servicios = services("WHERE name LIKE '%"+field+"%'");//can be various
@@ -211,19 +230,23 @@ public class BikeLog {
         for (int i=0;i<servicios.length;i++)
             System.out.println(servicios[i].toString());
         if (input){
-            System.out.print("Enter Servce ID: ");
-            return Integer.parseInt(scanner.nextLine());
+            System.out.print("Enter Service ID"+orOoption);
+            field = scanner.nextLine();
+            if (field == "")
+                return 0;
+            else
+            return Integer.parseInt(field);
         }
         else
             return 0;
     }
     
-    public static int setId_service(){
+    public static int setId_service(String orOption){
         int id_service = 0;
         System.out.print("Enter Service ID or <search>: ");
         String field = scanner.nextLine();
         if (field == "")
-            id_service = searchService(true);
+            id_service = searchService(true,orOption);
         else
             id_service = Integer.parseInt(field);
         return id_service;        
@@ -361,13 +384,14 @@ public class BikeLog {
     return salidas;
     }
     
-    public static Maintenance[] maintenances () {
+    public static Maintenance[] maintenances (String where) {
         int counter = 0;
-        Maintenance[] mantenimientos = new Maintenance[getRowCount("maintenance",true)];
+        Maintenance[] mantenimientos = new Maintenance[getRowCount("maintenance "+where,true)];
         // create a database connection
         try (Connection sqliteConnection = DriverManager.getConnection(url);){
             Statement statement = sqliteConnection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT * FROM maintenance");
+            ResultSet rs = statement.executeQuery("SELECT * FROM maintenance "+where+ " ORDER BY date");
+            //System.out.println("SELECT * FROM maintenance "+where);
             while(rs.next()) {
                 String[] myArray = rs.getString("date").split("[-]");
                 int anno = Integer.parseInt(myArray[0]);

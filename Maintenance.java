@@ -1,3 +1,4 @@
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 
 public class Maintenance {
@@ -11,6 +12,8 @@ public class Maintenance {
     private String description;
     private String duration;
     
+    public DecimalFormat df = new DecimalFormat("#.###");
+
     public Maintenance() {
     }
     //constructor
@@ -52,12 +55,12 @@ public class Maintenance {
         return "date,id_bike,odo,id_service,brand,reference,price,description,duration";
     }
     public String toUpdateValues(double startingOdo, double startingTime){
-        return "date = '"+date+"', id_bike = "+Integer.toString(id_bike)+", odo = "+Double.toString(odo)+", id_service = "+Integer.toString(id_service)+
-            ", brand = '"+brand+"', reference = '"+reference+"', price = "+Double.toString(price)+", description = '"+description+"', duration = '"+duration+"'";    
+        return "date = '"+date+"', id_bike = "+Integer.toString(id_bike)+", odo = "+df.format(odo)+", id_service = "+Integer.toString(id_service)+
+            ", brand = '"+brand+"', reference = '"+reference+"', price = "+df.format(price)+", description = '"+description+"', duration = '"+duration+"'";    
     }
     //works for insert
     public String toString(){
-        return "'"+date.toString()+"',"+Integer.toString(id_bike)+","+Double.toString(odo)+","+Integer.toString(id_service)+",'"+
-        brand+"','"+reference+"',"+Double.toString(price)+",'"+description+"','"+duration+"'";
+        return "'"+date.toString()+"',"+Integer.toString(id_bike)+","+df.format(odo)+","+Integer.toString(id_service)+",'"+
+        brand+"','"+reference+"',"+df.format(price)+",'"+description+"','"+duration+"'";
     }
 }
