@@ -124,27 +124,24 @@ AFTER UPDATE ON "maintenance"
 FOR EACH ROW
 BEGIN
     -- if a previous id_service,id_bike exists, update with the difference
-    UPDATE 
-        maintenance SET 
-            duration = 
+    UPDATE maintenance SET 
+        duration = 
             JSON_REPLACE(duration, '$.km', 
-                (SELECT JSON_EXTRACT(duration, '$.km') as "km" FROM maintenance WHERE 
-                    id_bike = NEW.id_bike AND 
-                    id_service = NEW.id_service 
-                    AND date = NEW.date) -
-                (SELECT MAX(JSON_EXTRACT(duration, '$.km')) as "km" FROM maintenance WHERE 
-                    id_bike = NEW.id_bike AND 
-                    id_service = NEW.id_service AND 
-                    "date" < NEW.date),
-                                '$.hours', 
-                (SELECT JSON_EXTRACT(duration, '$.hours') as "hours" FROM maintenance WHERE 
-                    id_bike = NEW.id_bike AND 
-                    id_service = NEW.id_service 
-                    AND date = NEW.date) -
-                (SELECT MAX(JSON_EXTRACT(duration, '$.hours')) as "hours" FROM maintenance WHERE 
-                    id_bike = NEW.id_bike AND 
-                    id_service = NEW.id_service AND 
-                    "date" < NEW.date)
+                (SELECT MAX(odo) FROM trip WHERE id_bike = NEW.id_bike AND "date" <= NEW."date")-
+                    (SELECT MAX(odo) FROM trip WHERE id_bike = NEW.id_bike AND 
+                        date < (SELECT MAX("date") FROM maintenance WHERE 
+                            id_bike = NEW.id_bike AND 
+                            id_service = NEW.id_service AND 
+                            "date" < NEW."date")
+                ),
+                '$.hours', 
+                (SELECT MAX(ride_time) FROM trip WHERE id_bike = NEW.id_bike AND "date" <= NEW."date") - 
+                    (SELECT MAX(ride_time) FROM trip WHERE id_bike = NEW.id_bike AND 
+                        date < (SELECT MAX("date") FROM maintenance WHERE 
+                            id_bike = NEW.id_bike AND 
+                            id_service = NEW.id_service AND 
+                            "date" < NEW."date")
+                )
             )
     WHERE date = NEW.date AND id_bike = NEW.id_bike AND id_service = NEW.id_service AND
             (SELECT date FROM maintenance WHERE 
