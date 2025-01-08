@@ -54,8 +54,8 @@ public class Maintenance {
     public String getColumnList(){
         return "date,id_bike,odo,id_service,brand,reference,price,description,duration";
     }
-    public String toUpdateValues(double startingOdo, double startingTime){
-        return "date = '"+date+"', id_bike = "+Integer.toString(id_bike)+", odo = "+df.format(odo)+", id_service = "+Integer.toString(id_service)+
+    public String toUpdateValues(){
+        return "date = '"+date+"', id_bike = "+Integer.toString(id_bike)+", id_service = "+Integer.toString(id_service)+
             ", brand = '"+brand+"', reference = '"+reference+"', price = "+df.format(price)+", description = '"+description+"', duration = '"+duration+"'";    
     }
     //works for insert

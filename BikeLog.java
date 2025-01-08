@@ -30,7 +30,6 @@ public class BikeLog {
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
             case 1:
-            //comprobar que se haya creado una bicicleta en maintenance antes de ingresar el primer trip    
             Trip[] salidas = trips();
                 System.out.println("Salidas");
                 for (int i=0;i<salidas.length;i++)
@@ -95,33 +94,44 @@ public class BikeLog {
             case 2:
                 System.out.println("For simplicity, first search between done maintenances to edit one of them");
                 Maintenance[] mantenimientos = searchMaintenance();
-                System.out.println(""); 
-                date = setDate("Maintenance");
-                System.out.println("Maintenances found for date "+date.toString()+":\n"+mantenimientos[0].getColumnList()); 
-                for (int i = 0; i< mantenimientos.length;i++){
-                    if (mantenimientos[i].getDate().toString().equals(date.toString()))
-                        System.out.println(mantenimientos[i].toString()); 
-                }
-                LocalDate newDate = setDate("duration");
-                maintenanceMenu();
-                    //double km = getHours(1, 2, date.toString(), false, true);
+                //mantenimientos tiene el id_bike
+                System.out.println("Select Maintenance event:"); 
                 
-            /*
-                System.out.print("Enter Service ID or <search>: ");
-                field = scanner.nextLine();
-                int id_service = 0;
-                if (field == "")
-                    id_service = searchService(false);
-                else
-                    id_service = Integer.parseInt(field);
-                Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
-                System.out.print("Enter new Service name or <"+servicio[0].getName()+">: ");
-                field = scanner.nextLine();
-                servicio[0].setName(field);
+                date = setDate("Maintenance");
+                id_service = setId_service(":");
+                
+                mantenimientos = maintenances("WHERE id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
+                    " AND id_service = "+Integer.toString(id_service)+" AND date = '"+date.toString()+"'");
+                //must be only one
+
+                System.out.println("\nEnter new Maintenance event changes:"); 
+                mantenimientos[0].setDate(setDate("Maintenance",date.toString(),date));
+                mantenimientos[0].setId_service(setId_service(":"));
+
+                System.out.print("Enter Brand or <"+mantenimientos[0].getBrand()+">: ");
+                field = scanner.nextLine().toUpperCase();
                 if (field != "")
-                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service),false);
-                serviceMenu();
-                */
+                    mantenimientos[0].setBrand(field);
+
+                System.out.print("Enter Reference or <"+mantenimientos[0].getReference()+">: ");
+                field = scanner.nextLine().toUpperCase();
+                if (field != "")
+                    mantenimientos[0].setReference(field);
+                
+                System.out.print("Enter Price (COP K$) or <"+Double.toString(mantenimientos[0].getPrice())+">: ");
+                field = scanner.nextLine();
+                if (field != "")
+                    mantenimientos[0].setPrice(Double.parseDouble(field));
+                
+                System.out.print("Enter Description: or <"+mantenimientos[0].getDescription()+">: ");
+                field = scanner.nextLine();
+                if (field != "")
+                    mantenimientos[0].setDescription(field);
+
+                mantenimientos[0].setDuration("{\"km\": 0.0, \"hours\":0.0}");
+                updateValues("maintenance", mantenimientos[0].toUpdateValues(), " id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
+                    " AND id_service = "+Integer.toString(mantenimientos[0].getId_service())+ " AND date = '"+date.toString()+"'", false);
+                maintenanceMenu();
                 break;
             case 3:
                 searchMaintenance();
@@ -134,7 +144,6 @@ public class BikeLog {
                 System.out.println("goodbye");
                 break;
         }
-        
     }
 
     public static Maintenance[] searchMaintenance(){
@@ -163,6 +172,19 @@ public class BikeLog {
         String field = scanner.nextLine();
         String[] dateString = {};
         LocalDate date = LocalDate.now();
+        if (field != ""){
+            dateString = field.split("[-]");
+            date = date.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
+        }
+        //System.out.println(date.toString());
+        return date;
+    }
+
+    public static LocalDate setDate (String event, String orOption, LocalDate sameDate){
+        System.out.print("Enter "+event+" date (YYYYY-MM-DD) or <"+orOption+">: ");
+        String field = scanner.nextLine();
+        String[] dateString = {};
+        LocalDate date = sameDate;
         if (field != ""){
             dateString = field.split("[-]");
             date = date.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
@@ -271,6 +293,7 @@ public class BikeLog {
                 newBike.setType(scanner.nextLine().toUpperCase());
                 newBike.setOdo(0.0);
                 newBike.setRideTime(0.0);
+                /*
                 double odo = 0.0;
                 System.out.print("Enter new Bike starting odometer reading <0>: ");
                 String field = scanner.nextLine();
@@ -283,13 +306,14 @@ public class BikeLog {
                     ride_time= Double.parseDouble(field);
                 //odo and ride_time goes to databases' (starting_odo and starting_time) columns instead of odo and ride_time
                 //because these last ones store kilometers and hours registered by the user
-                insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(odo,ride_time),false);
+                */
+                insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(),false);
                 //a Maintenance with id_service = X must be created
                 LocalDate date = setDate ("Bike Acquisition");
                 Bike[] bike = bikes("WHERE name = '"+newBike.getName()+"'");
                 double price = 0.0;
                 System.out.print("Enter Price (COP K$) or <0.0>: ");
-                field = scanner.nextLine();
+                String field = scanner.nextLine();
                 if (field != "")
                     price = Double.parseDouble(field);
                 System.out.print("Enter Description: ");

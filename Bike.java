@@ -42,10 +42,10 @@ public class Bike {
     public void setRideTime (double horometro) {this.rideTime = horometro;}
 
     public String getColumnList(){
-        return "name,brand,model,type,odo,ride_time,starting_odo,starting_time";
+        return "name,brand,model,type,odo,ride_time";
     }
-    public String toInsertValues(double startingOdo, double startingTime){
-        return "'"+name+"','"+brand+"','"+model+"','"+type+"',"+Double.toString(odo)+","+Double.toString(rideTime)+","+Double.toString(startingOdo)+","+Double.toString(startingTime);    
+    public String toInsertValues(){
+        return "'"+name+"','"+brand+"','"+model+"','"+type+"',"+Double.toString(odo)+","+Double.toString(rideTime);    
     }
     public String toUpdateValues(){
         return "name = '"+name+"', brand = '"+brand+"', model = '"+model+"', type = '"+type+"'";    

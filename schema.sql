@@ -15,8 +15,6 @@ CREATE TABLE "bike" (
     "brand" TEXT NOT NULL,
     "model" TEXT NOT NULL,
     "type" TEXT NOT NULL CHECK ("type" IN ('MTB','ROAD','GRAVEL')),
-    "starting_odo"  NUMERIC DEFAULT 0.0,
-    "starting_time"  NUMERIC DEFAULT 0.0,
     "odo" NUMERIC NOT NULL,
     "ride_time" NUMERIC NOT NULL,
     PRIMARY KEY ("id")
@@ -50,15 +48,13 @@ AFTER INSERT ON "trip"
 FOR EACH ROW
 BEGIN
     --updating bike.odo
-    UPDATE "bike" SET "odo" = "starting_odo" + (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike"),
-    "ride_time" = "starting_time" + (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike") 
+    UPDATE "bike" SET "odo" = (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike"),
+    "ride_time" = (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike") 
     WHERE "id" = NEW."id_bike";
     --update trip.velocity, trip.odo and trip.ride_time
     UPDATE "trip" SET "velocity" = NEW."distance" / NEW."trip_time" 
-        ,"odo" = (SELECT "starting_odo" FROM "bike" WHERE id = NEW."id_bike") + 
-        (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
-        ,"ride_time" = (SELECT "starting_time" FROM "bike" WHERE id = NEW."id_bike") + 
-        (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
+        ,"odo" = (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
+        ,"ride_time" = (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
         WHERE "date" = NEW."date";
     UPDATE "trip" SET "odo" = "odo" + NEW."distance" WHERE "id_bike" = NEW."id_bike" AND date > NEW."date";
 END;
@@ -69,8 +65,8 @@ AFTER DELETE ON "trip"
 FOR EACH ROW
 BEGIN
     --updating bike.odo
-    UPDATE "bike" SET "odo" = "starting_odo" + (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = OLD."id_bike"),
-    "ride_time" = "starting_time" + (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = OLD."id_bike") 
+    UPDATE "bike" SET "odo" = (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = OLD."id_bike"),
+    "ride_time" = (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = OLD."id_bike") 
     WHERE "id" = OLD."id_bike";
     --update trip odo
     UPDATE "trip" SET "odo" = "odo" - OLD."distance" WHERE "id_bike" = OLD."id_bike" AND date >= OLD."date" ;
@@ -125,7 +121,8 @@ FOR EACH ROW
 BEGIN
     -- if a previous id_service,id_bike exists, update with the difference
     UPDATE maintenance SET 
-        duration = 
+        odo = (SELECT MAX(odo) FROM trip WHERE id_bike = NEW.id_bike AND date <= NEW.date)
+        ,duration = 
             JSON_REPLACE(duration, '$.km', 
                 (SELECT MAX(odo) FROM trip WHERE id_bike = NEW.id_bike AND "date" <= NEW."date")-
                     (SELECT MAX(odo) FROM trip WHERE id_bike = NEW.id_bike AND 
