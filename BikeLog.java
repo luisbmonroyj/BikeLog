@@ -30,21 +30,21 @@ public class BikeLog {
         System.out.println("\nPlease insert an option:\n1.Trips\n2.Maintenances\n3.Services\n4.Bikes\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
-            case 1:
-                tripMenu();
-                break;
-            case 2:    
-                maintenanceMenu();
-                break;
-            case 3:
-                serviceMenu();
-                break;
-            case 4:
-                bikeMenu();
-            break;  
-            case 5:
-                System.out.println("goodbye");
-                break;
+        case 1:
+            tripMenu();
+            break;
+        case 2:    
+            maintenanceMenu();
+            break;
+        case 3:
+            serviceMenu();
+            break;
+        case 4:
+            bikeMenu();
+        break;  
+        case 5:
+            System.out.println("goodbye");
+            break;
         }                  
     }
 
@@ -158,90 +158,90 @@ public class BikeLog {
         System.out.println("1.Add new Maintenance\n2.Edit Maintenance\n3.Search\n4.Main menu\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
-            case 1:
-                LocalDate date = setDate ("new Maintenance");
-                id_bike = setBikeId();
-                id_service = setId_service(":");
-                if (id_service == 0){
-                    System.out.print("Enter new Service name: ");
-                    String name = scanner.nextLine();
-                    Service newService = new Service(0,name);
-                    insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
-                    id_service = services("WHERE name = '"+newService.getName()+"'")[0].getId();
-                }
-                System.out.print("Enter Brand: ");
-                String brand = scanner.nextLine().toUpperCase();
-                
-                System.out.print("Enter Reference: ");
-                String reference = scanner.nextLine().toUpperCase();
-                
-                double price = 0.0;
-                System.out.print("Enter Price (COP K$) or <0.0>: ");
-                field = scanner.nextLine();
-                if (field != "")
-                    price = Double.parseDouble(field);
-                
-                System.out.print("Enter Description: ");
-                String description = scanner.nextLine();
-                
-                String duration = "{\"km\": 0.0, \"hours\":0.0}";
-                
-                Maintenance maintenance = new Maintenance(date,id_bike,0.0,id_service,brand,reference,price,description,duration);
-                insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
-                maintenanceMenu();
-                break;
-            case 2:
-                System.out.println("For simplicity, first search between done maintenances to edit one of them");
-                Maintenance[] mantenimientos = searchMaintenance();
-                //mantenimientos tiene el id_bike
-                System.out.println("Select Maintenance event:"); 
-                
-                date = setDate("Maintenance");
-                id_service = setId_service(":");
-                
-                mantenimientos = maintenances("WHERE id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
-                    " AND id_service = "+Integer.toString(id_service)+" AND date = '"+date.toString()+"'");
-                //must be only one
+        case 1:
+            LocalDate date = setDate ("new Maintenance");
+            id_bike = setBikeId();
+            id_service = setId_service(":");
+            if (id_service == 0){
+                System.out.print("Enter new Service name: ");
+                String name = scanner.nextLine();
+                Service newService = new Service(0,name);
+                insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
+                id_service = services("WHERE name = '"+newService.getName()+"'")[0].getId();
+            }
+            System.out.print("Enter Brand: ");
+            String brand = scanner.nextLine().toUpperCase();
+            
+            System.out.print("Enter Reference: ");
+            String reference = scanner.nextLine().toUpperCase();
+            
+            double price = 0.0;
+            System.out.print("Enter Price (COP K$) or <0.0>: ");
+            field = scanner.nextLine();
+            if (field != "")
+                price = Double.parseDouble(field);
+            
+            System.out.print("Enter Description: ");
+            String description = scanner.nextLine();
+            
+            String duration = "{\"km\": 0.0, \"hours\":0.0}";
+            
+            Maintenance maintenance = new Maintenance(date,id_bike,0.0,id_service,brand,reference,price,description,duration);
+            insertValues("maintenance", maintenance.getColumnList(), maintenance.toString(), true);
+            maintenanceMenu();
+            break;
+        case 2:
+            System.out.println("For simplicity, first search between done maintenances to edit one of them");
+            Maintenance[] mantenimientos = searchMaintenance();
+            //mantenimientos tiene el id_bike
+            System.out.println("Select Maintenance event:"); 
+            
+            date = setDate("Maintenance");
+            id_service = setId_service(":");
+            
+            mantenimientos = maintenances("WHERE id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
+                " AND id_service = "+Integer.toString(id_service)+" AND date = '"+date.toString()+"'");
+            //must be only one
 
-                System.out.println("\nEnter new Maintenance event changes:"); 
-                mantenimientos[0].setDate(setDate("Maintenance",date.toString(),date));
-                mantenimientos[0].setId_service(setId_service(":"));
+            System.out.println("\nEnter new Maintenance event changes:"); 
+            mantenimientos[0].setDate(setDate("Maintenance",date.toString(),date));
+            mantenimientos[0].setId_service(setId_service(":"));
 
-                System.out.print("Enter Brand or <"+mantenimientos[0].getBrand()+">: ");
-                field = scanner.nextLine().toUpperCase();
-                if (field != "")
-                    mantenimientos[0].setBrand(field);
+            System.out.print("Enter Brand or <"+mantenimientos[0].getBrand()+">: ");
+            field = scanner.nextLine().toUpperCase();
+            if (field != "")
+                mantenimientos[0].setBrand(field);
 
-                System.out.print("Enter Reference or <"+mantenimientos[0].getReference()+">: ");
-                field = scanner.nextLine().toUpperCase();
-                if (field != "")
-                    mantenimientos[0].setReference(field);
-                
-                System.out.print("Enter Price (COP K$) or <"+Double.toString(mantenimientos[0].getPrice())+">: ");
-                field = scanner.nextLine();
-                if (field != "")
-                    mantenimientos[0].setPrice(Double.parseDouble(field));
-                
-                System.out.print("Enter Description: or <"+mantenimientos[0].getDescription()+">: ");
-                field = scanner.nextLine();
-                if (field != "")
-                    mantenimientos[0].setDescription(field);
+            System.out.print("Enter Reference or <"+mantenimientos[0].getReference()+">: ");
+            field = scanner.nextLine().toUpperCase();
+            if (field != "")
+                mantenimientos[0].setReference(field);
+            
+            System.out.print("Enter Price (COP K$) or <"+Double.toString(mantenimientos[0].getPrice())+">: ");
+            field = scanner.nextLine();
+            if (field != "")
+                mantenimientos[0].setPrice(Double.parseDouble(field));
+            
+            System.out.print("Enter Description: or <"+mantenimientos[0].getDescription()+">: ");
+            field = scanner.nextLine();
+            if (field != "")
+                mantenimientos[0].setDescription(field);
 
-                mantenimientos[0].setDuration("{\"km\": 0.0, \"hours\":0.0}");
-                updateValues("maintenance", mantenimientos[0].toUpdateValues(), " id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
-                    " AND id_service = "+Integer.toString(mantenimientos[0].getId_service())+ " AND date = '"+date.toString()+"'", false);
-                maintenanceMenu();
-                break;
-            case 3:
-                searchMaintenance();
-                maintenanceMenu();
-                break;
-            case 4:
-                mainMenu();
-                break;
-            case 5:
-                System.out.println("goodbye");
-                break;
+            mantenimientos[0].setDuration("{\"km\": 0.0, \"hours\":0.0}");
+            updateValues("maintenance", mantenimientos[0].toUpdateValues(), " id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
+                " AND id_service = "+Integer.toString(mantenimientos[0].getId_service())+ " AND date = '"+date.toString()+"'", false);
+            maintenanceMenu();
+            break;
+        case 3:
+            searchMaintenance();
+            maintenanceMenu();
+            break;
+        case 4:
+            mainMenu();
+            break;
+        case 5:
+            System.out.println("goodbye");
+            break;
         }
     }
 
@@ -313,33 +313,33 @@ public class BikeLog {
         System.out.println("1.Add new Service\n2.Edit Service\n3.Search\n4.Main menu\n5.Exit");
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
-            case 1:
-                System.out.print("Enter new Service name: ");
-                name = scanner.nextLine();
-                Service newService = new Service(0,name);
-                insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
-                serviceMenu();
-                break;
-            case 2:
-                int id_service = setId_service(":");
-                Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
-                System.out.print("Enter Service new name or <"+servicio[0].getName()+">: ");
-                field = scanner.nextLine();
-                servicio[0].setName(field);
-                if (field != "")
-                    updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service),false);
-                serviceMenu();
-                break;
-            case 3:
-                searchService(false,"is false");
-                serviceMenu();
-                break;
-            case 4:
-                mainMenu();
-                break;
-            case 5:
-                System.out.println("goodbye");
-                break;
+        case 1:
+            System.out.print("Enter new Service name: ");
+            name = scanner.nextLine();
+            Service newService = new Service(0,name);
+            insertValues("service",newService.getColumnList(),newService.toInsertValues(),false);
+            serviceMenu();
+            break;
+        case 2:
+            int id_service = setId_service(":");
+            Service[] servicio = services("WHERE id = "+Integer.toString(id_service));//must be only one
+            System.out.print("Enter Service new name or <"+servicio[0].getName()+">: ");
+            field = scanner.nextLine();
+            servicio[0].setName(field);
+            if (field != "")
+                updateValues("service", servicio[0].toUpdateValues(),"id = "+Integer.toString(id_service),false);
+            serviceMenu();
+            break;
+        case 3:
+            searchService(false,"is false");
+            serviceMenu();
+            break;
+        case 4:
+            mainMenu();
+            break;
+        case 5:
+            System.out.println("goodbye");
+            break;
         }
     }
 
