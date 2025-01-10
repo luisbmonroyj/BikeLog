@@ -55,26 +55,12 @@ public class BikeLog {
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
         case 1:
-            LocalDate date = setDate ("new Trip");
-            id_bike = setBikeId();
-            System.out.print("Enter ride time (HH.MM.SS, no colons): ");
-            String field = scanner.nextLine();
-            String[] dateString = {};
-            dateString = field.split("[.]");
-            LocalTime time = LocalTime.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
-            //System.out.println(time.toString());
-            System.out.print("Enter distance (km): ");
-            double distance = Double.parseDouble(scanner.nextLine());
-            System.out.print("Enter max speed (km/h): ");
-            double speed = Double.parseDouble(scanner.nextLine());
-            double timeValue = time.getHour()+ (double)time.getMinute()/60 + (double)time.getSecond()/3600;
-            Trip newTrip = new Trip (date,id_bike,timeValue,distance,speed,(distance/timeValue));
-            insertValues("trip", newTrip.getColumnList(), newTrip.toInsertValues(), true);
+            setTripData(setBikeId(),"new Trip", false);
             tripMenu();
             break;
-            case 2:
+        case 2:
             searchTrips();
-            //edit    
+            setTripData(setBikeId(),"from the list above, Trip", true);
             tripMenu();
             break;
         case 3:
@@ -88,7 +74,63 @@ public class BikeLog {
             break;
         }
     }
+    public static void setTripData(int id_bike, String event, boolean existing){
+        LocalDate date = setDate (event);
+        //int id_bike = setBikeId();
+        String where = "id_bike = "+Integer.toString(id_bike)+" AND date = '"+date.toString()+"'";
+        Trip[] oldTrips = trips(" WHERE "+where); //method trips() has no where clause by default
+        Trip trip = new Trip();
+        if (oldTrips.length >= 1){ //there are more than 1 trip made that day with the same bicycle, filter by distance
+            if (oldTrips.length > 1){
+                System.out.println("Trips made that day: ");
+                for (int i=0;i<oldTrips.length;i++)
+                System.out.println(oldTrips[i].toString());
+            
+            System.out.println("\nEnter trip distance of the Trip to be modified: ");
+            double distance = Double.parseDouble(scanner.nextLine());
+            where += " AND distance = "+Double.toString(distance);
+            oldTrips = trips("WHERE "+where); //length must be 1
+            }
+            trip = oldTrips[0];
+        }
+        double time = trip.getTrip_time();
+        double distance = trip.getDistance();
+        double speed = trip.getMaxSpeed();
+        if (existing){
+            time = setTime("Enter ride time (HH.MM.SS) or <"+trip.getTrip_time()+">: ",trip.getTrip_time());
+            System.out.print("Enter distance (km) or <"+Double.toString(trip.getDistance())+">: ");
+            String field = scanner.nextLine();
+            if (field != "")
+                distance = Double.parseDouble(field);
+            System.out.print("Enter max speed (km/h) or <"+Double.toString(trip.getMaxSpeed())+">: ");
+            field = scanner.nextLine();
+            if (field != "")
+                speed = Double.parseDouble(field);
+            Trip modifyTrip = new Trip (date,id_bike,time,distance,speed,(distance/time));
+            updateValues("trip",modifyTrip.toUpdateValues(), where, true);
+        }
+        else{
+            time = setTime("Enter ride time (HH.MM.SS): ",0);
+            System.out.print("Enter distance (km): ");
+            distance = Double.parseDouble(scanner.nextLine());
+            System.out.print("Enter max speed (km/h): ");
+            speed = Double.parseDouble(scanner.nextLine());
+            Trip newTrip = new Trip (date,id_bike,time,distance,speed,(distance/time));
+            insertValues("trip", newTrip.getColumnList(), newTrip.toInsertValues(), true);
+        }
+    }
 
+    public static double setTime(String question,double time){
+        System.out.print(question);
+        String field = scanner.nextLine();
+        if (!field.equals("")){
+            String[] dateString = {};
+            dateString = field.split("[.]");
+            LocalTime tripTime = LocalTime.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
+            time = tripTime.getHour()+(double)tripTime.getMinute()/60+(double)tripTime.getSecond()/3600;
+        }
+        return time;
+    }
     public static Trip[] searchTrips(){
         int id_bike = setBikeId();
         System.out.println("If initial date is <today>, all Trips done so far and meeting criteria will be shown");
@@ -106,6 +148,7 @@ public class BikeLog {
             System.out.println(trips[i].toString());
         return trips;
     }
+
     public static void maintenanceMenu(){
         //"date,id_bike,odo,id_service,brand,reference,price,description,duration";
         String field = "";
@@ -349,20 +392,6 @@ public class BikeLog {
                 newBike.setType(scanner.nextLine().toUpperCase());
                 newBike.setOdo(0.0);
                 newBike.setRideTime(0.0);
-                /*
-                double odo = 0.0;
-                System.out.print("Enter new Bike starting odometer reading <0>: ");
-                String field = scanner.nextLine();
-                if (field != "")
-                    odo = Double.parseDouble(field);
-                double ride_time = 0.0;
-                System.out.print("Enter new Bike starting ride time reading <0>: ");
-                field = scanner.nextLine();
-                if (field != "")
-                    ride_time= Double.parseDouble(field);
-                //odo and ride_time goes to databases' (starting_odo and starting_time) columns instead of odo and ride_time
-                //because these last ones store kilometers and hours registered by the user
-                */
                 insertValues("bike",newBike.getColumnList(),newBike.toInsertValues(),false);
                 //a Maintenance with id_service = X must be created
                 LocalDate date = setDate ("Bike Acquisition");
@@ -431,8 +460,6 @@ public class BikeLog {
         System.out.println("Bikes matching keyword: \nID,name,brand,model,odo,ride_time");
         for (int i=0;i<servicios.length;i++)
             System.out.println(servicios[i].toString());
-        //System.out.print("Enter Servce ID: ");
-        //return Integer.parseInt(scanner.nextLine());
     }
     
     public static Trip[] trips (String where) {
@@ -470,7 +497,7 @@ public class BikeLog {
         // create a database connection
         try (Connection sqliteConnection = DriverManager.getConnection(url);){
             Statement statement = sqliteConnection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT * FROM maintenance "+where+ " ORDER BY date");
+            ResultSet rs = statement.executeQuery("SELECT * FROM maintenance "+where+" ORDER BY date");
             //System.out.println("SELECT * FROM maintenance "+where);
             while(rs.next()) {
                 String[] myArray = rs.getString("date").split("[-]");
