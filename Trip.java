@@ -44,7 +44,7 @@ public class Trip {
         Double.toString(trip_time)+", distance = "+Double.toString(distance)+", max_speed = "+Double.toString(max_speed);
     }
     public String toInsertValues(){
-        return date.toString()+","+Integer.toString(id_bike)+","+Double.toString(trip_time)+","+Double.toString(distance)+","+
+        return "'"+date.toString()+"',"+Integer.toString(id_bike)+","+Double.toString(trip_time)+","+Double.toString(distance)+","+
             Double.toString(max_speed);
     }
     

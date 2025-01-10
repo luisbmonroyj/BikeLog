@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Scanner;
 
 /*
@@ -30,10 +31,7 @@ public class BikeLog {
         int option = Integer.parseInt(scanner.nextLine());
         switch (option) {
             case 1:
-            Trip[] salidas = trips();
-                System.out.println("Salidas");
-                for (int i=0;i<salidas.length;i++)
-                    System.out.println(salidas[i].toString());
+                tripMenu();
                 break;
             case 2:    
                 maintenanceMenu();
@@ -50,6 +48,64 @@ public class BikeLog {
         }                  
     }
 
+    public static void tripMenu(){
+        int id_bike = 0;
+        System.out.println("\nTRIPS. ENTER AN OPTION");
+        System.out.println("1.Add new Trip\n2.Edit Trip\n3.Search\n4.Main menu\n5.Exit");
+        int option = Integer.parseInt(scanner.nextLine());
+        switch (option) {
+        case 1:
+            LocalDate date = setDate ("new Trip");
+            id_bike = setBikeId();
+            System.out.print("Enter ride time (HH.MM.SS, no colons): ");
+            String field = scanner.nextLine();
+            String[] dateString = {};
+            dateString = field.split("[.]");
+            LocalTime time = LocalTime.of(Integer.parseInt(dateString[0]),Integer.parseInt(dateString[1]),Integer.parseInt(dateString[2]));
+            //System.out.println(time.toString());
+            System.out.print("Enter distance (km): ");
+            double distance = Double.parseDouble(scanner.nextLine());
+            System.out.print("Enter max speed (km/h): ");
+            double speed = Double.parseDouble(scanner.nextLine());
+            double timeValue = time.getHour()+ (double)time.getMinute()/60 + (double)time.getSecond()/3600;
+            Trip newTrip = new Trip (date,id_bike,timeValue,distance,speed,(distance/timeValue));
+            insertValues("trip", newTrip.getColumnList(), newTrip.toInsertValues(), true);
+            tripMenu();
+            break;
+            case 2:
+            searchTrips();
+            //edit    
+            tripMenu();
+            break;
+        case 3:
+            searchTrips();
+            tripMenu();
+            break;
+        case 4:
+            mainMenu();
+            break;
+        case 5:
+            break;
+        }
+    }
+
+    public static Trip[] searchTrips(){
+        int id_bike = setBikeId();
+        System.out.println("If initial date is <today>, all Trips done so far and meeting criteria will be shown");
+        String query = "WHERE id_bike = "+Integer.toString(id_bike);
+        LocalDate date1 = setDate ("Trip initial");
+        if (date1.toString().equals(LocalDate.now().toString())) 
+            query += " AND date <= '"+date1.toString()+"'";
+        else{
+            LocalDate date2 = setDate ("Trip final");
+            query+= " AND date >= '"+date1.toString()+"' AND date <= '"+date2.toString()+"' ";
+        }
+        Trip[] trips = trips(query);
+        System.out.println("\nTrips meeting criteria: \ndate,id_bike,trip_time,distance,max_speed,velocity");
+        for (int i=0;i<trips.length;i++)
+            System.out.println(trips[i].toString());
+        return trips;
+    }
     public static void maintenanceMenu(){
         //"date,id_bike,odo,id_service,brand,reference,price,description,duration";
         String field = "";
@@ -379,13 +435,13 @@ public class BikeLog {
         //return Integer.parseInt(scanner.nextLine());
     }
     
-    public static Trip[] trips () {
+    public static Trip[] trips (String where) {
         int counter = 0;
-        Trip[] salidas = new Trip[getRowCount("trip",true)];
+        Trip[] salidas = new Trip[getRowCount("trip "+where,true)];
         // create a database connection
         try (Connection sqliteConnection = DriverManager.getConnection(url);){
             Statement statement = sqliteConnection.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT * FROM trips ORDER BY date");
+            ResultSet rs = statement.executeQuery("SELECT * FROM trip "+where+" ORDER BY date");
             while(rs.next()) {
                 String[] myArray = rs.getString("date").split("[-]");
                 int anno = Integer.parseInt(myArray[0]);
