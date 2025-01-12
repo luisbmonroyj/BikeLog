@@ -90,3 +90,10 @@ SELECT * FROM maintenance ORDER BY date;
 --2022-02-10	STEF	2230	Pastillas Freno FF	GW	NONE	16
 
 --formatting real numbers: SELECT printf("%.2f", floatField) AS field FROM table;
+
+--exporting to csv
+
+-- sqlite> .headers on
+-- sqlite> .mode csv
+-- sqlite> .output <data.csv> 
+-- sqlite> SELECT <columnA,columnB,columnC,columnD FROM <table>;
