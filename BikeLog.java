@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 /*
    instalar jdk-23_linux-x64_bin.deb
+   descargar sqlite-jdbc-3.47.1.0.jar en la carpeta de trabajo
  * compilar
    javac BikeLog.java
  * ejecutar
