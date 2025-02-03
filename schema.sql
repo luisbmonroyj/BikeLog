@@ -55,7 +55,7 @@ BEGIN
     UPDATE "trip" SET "velocity" = NEW."distance" / NEW."trip_time" 
         ,"odo" = (SELECT SUM("distance") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
         ,"ride_time" = (SELECT SUM("trip_time") FROM "trip" WHERE "id_bike" = NEW."id_bike" AND date <= NEW."date") 
-        WHERE "date" = NEW."date";
+        WHERE "date" = NEW."date" AND "id_bike" = NEW."id_bike" ;
     UPDATE "trip" SET "odo" = "odo" + NEW."distance" WHERE "id_bike" = NEW."id_bike" AND date > NEW."date";
 END;
 
