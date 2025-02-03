@@ -119,6 +119,7 @@ public class BikeLog {
             Trip newTrip = new Trip (date,id_bike,time,distance,speed,(distance/time));
             insertValues("trip", newTrip.getColumnList(), newTrip.toInsertValues(), true);
         }
+        System.out.println("Average Velocity: "+Double.toString(distance/time)+" km/h");
     }
 
     public static double setTime(String question,double time){
