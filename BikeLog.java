@@ -14,7 +14,15 @@ import java.util.Scanner;
    javac BikeLog.java
  * ejecutar
    java -cp .:sqlite-jdbc-3.47.1.0.jar BikeLog
+
+    para exportar los datos
+    sqlite> .headers on
+    sqlite> .mode csv
+    sqlite> .output data.csv
+    sqlite> SELECT * FROM trip;
+    sqlite> .quit
  */
+
 import java.time.LocalDateTime;
 
 public class BikeLog {
