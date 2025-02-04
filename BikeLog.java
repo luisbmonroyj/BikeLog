@@ -258,7 +258,7 @@ public class BikeLog {
     public static Maintenance[] searchMaintenance(){
         System.out.println("If initial date is <today>, all maintenances done so far and meeting criteria will be shown");
         int id_bike = setBikeId();
-        int id_service = setId_service(" or <show all>: ");
+        int id_service = setId_service(" or <0 shows all,Enter to search by keyword>: ");
         String query = "WHERE id_bike = "+Integer.toString(id_bike);
         if (id_service != 0)
             query += " AND id_service = "+Integer.toString(id_service);
@@ -374,7 +374,7 @@ public class BikeLog {
     
     public static int setId_service(String orOption){
         int id_service = 0;
-        System.out.print("Enter Service ID or <search>: ");
+        System.out.print("Enter Service ID"+orOption);
         String field = scanner.nextLine();
         if (field == "")
             id_service = searchService(true,orOption);
