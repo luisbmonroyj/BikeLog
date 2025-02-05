@@ -171,7 +171,7 @@ public class BikeLog {
         case 1:
             LocalDate date = setDate ("new Maintenance");
             id_bike = setBikeId();
-            id_service = setId_service(":");
+            id_service = setId_service(" or <Enter for search, 0 for a new one>:");
             if (id_service == 0){
                 System.out.print("Enter new Service name: ");
                 String name = scanner.nextLine();
@@ -207,7 +207,7 @@ public class BikeLog {
             System.out.println("Select Maintenance event:"); 
             
             date = setDate("Maintenance");
-            id_service = setId_service(":");
+            id_service = setId_service(" or <Enter to search by keyword>:");
             
             mantenimientos = maintenances("WHERE id_bike = "+Integer.toString(mantenimientos[0].getId_bike())+
                 " AND id_service = "+Integer.toString(id_service)+" AND date = '"+date.toString()+"'");
@@ -215,7 +215,9 @@ public class BikeLog {
 
             System.out.println("\nEnter new Maintenance event changes:"); 
             mantenimientos[0].setDate(setDate("Maintenance",date.toString(),date));
-            mantenimientos[0].setId_service(setId_service(":"));
+            int id_service_change = setId_service(" or <"+Integer.toString(id_service)+">:");
+            
+            mantenimientos[0].setId_service(id_service_change);
 
             System.out.print("Enter Brand or <"+mantenimientos[0].getBrand()+">: ");
             field = scanner.nextLine().toUpperCase();
@@ -258,7 +260,7 @@ public class BikeLog {
     public static Maintenance[] searchMaintenance(){
         System.out.println("If initial date is <today>, all maintenances done so far and meeting criteria will be shown");
         int id_bike = setBikeId();
-        int id_service = setId_service(" or <0 shows all,Enter to search by keyword>: ");
+        int id_service = setId_service(" or <0 shows all, Enter to search by keyword>: ");
         String query = "WHERE id_bike = "+Integer.toString(id_bike);
         if (id_service != 0)
             query += " AND id_service = "+Integer.toString(id_service);
@@ -361,7 +363,7 @@ public class BikeLog {
         for (int i=0;i<servicios.length;i++)
             System.out.println(servicios[i].toString());
         if (input){
-            System.out.print("Enter Service ID"+orOoption);
+            System.out.print("Enter Service ID: ");//+orOoption);
             field = scanner.nextLine();
             if (field == "")
                 return 0;
