@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 
 public class BikeLog {
 
-    private static String url = "jdbc:sqlite:bikelog.db";
+    private static String url = "jdbc:sqlite:/home/luisbmonroyj/Dropbox/bikelog.db";
     private static int default_bikeId = 1;
     private static Scanner scanner = new Scanner(System.in);
 

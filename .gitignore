@@ -4,6 +4,7 @@ Maintenance.class
 Service.class
 Trip.class
 Hack.class
+bikelog.db
 sqlite-jdbc-3.47.1.0.jar
 .~lock.trip-raw-min-data.csv#
 trip-raw.csv
