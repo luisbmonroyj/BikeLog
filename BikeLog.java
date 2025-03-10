@@ -15,6 +15,19 @@ import java.util.Scanner;
  * ejecutar
    java -cp .:sqlite-jdbc-3.47.1.0.jar BikeLog
 
+To make a simpler script
+nano BikeLog.sh
+type this inside it:
+cd 
+cd dev-projects/BikeLog
+java -cp .:sqlite-jdbc-3.47.1.0.jar BikeLog
+Ctrl + X 
+Y
+Intro
+
+Execute it 
+bash BikeLog.sh
+
     para exportar los datos
     sqlite> .headers on
     sqlite> .mode csv
