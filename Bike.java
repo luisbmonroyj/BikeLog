@@ -27,10 +27,10 @@ public class Bike {
     //getters
     public int getId() {return id;}
     public String getName() {return name;}
-    public String getBrand() {return brand;}
+    public String getBrand(){return brand;}
     public String getModel(){return model;}
-    public String getType(){return type;}
-    public double getOdo(){return odo;}
+    public String getType() {return type;}
+    public double getOdo()  {return odo;}
     public double getRideTime(){return rideTime;}    
 
     //setters
@@ -50,7 +50,6 @@ public class Bike {
     public String toUpdateValues(){
         return "name = '"+name+"', brand = '"+brand+"', model = '"+model+"', type = '"+type+"'";    
     }
-    
     public String toString(){
         return Integer.toString(id)+","+name+","+brand+","+model+","+type+","+Double.toString(odo)+","+Double.toString(rideTime);    
     }
